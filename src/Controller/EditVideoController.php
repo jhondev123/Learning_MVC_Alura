@@ -1,6 +1,7 @@
 <?php
 
 namespace Jhonattan\MVC\Controller;
+use finfo;
 use Jhonattan\MVC\Entity\Video;
 use Jhonattan\MVC\Repository\VideoRepository;
 
@@ -32,6 +33,19 @@ public function processaRequisicao():void
 
             $video = new Video($url,$titulo);
             $video->setId($id);
+
+            if($_FILES['image']['error'] === UPLOAD_ERR_OK){
+                $finfo = new finfo(FILEINFO_MIME_TYPE);
+                $mineType = $finfo->file($_FILES['image']['tmp_name']);
+                if(str_starts_with($mineType,"image")){
+                    $safeFileName = uniqid('upload_') . "_". strtolower(pathinfo($_FILES['image']['name'],PATHINFO_BASENAME));
+                    move_uploaded_file(
+                        $_FILES['image']['tmp_name'],
+                        __DIR__ ."/../../public/img/uploads". $safeFileName
+                    );
+                    $video->setFilePath($safeFileName);
+                }
+            }
             $sucess = $this->videoRepository->updateVideo($video);
             if($sucess === false){
                 header('Location: /?sucesso=0');

@@ -5,6 +5,8 @@
     }
   },
   "require": {
-    "ext-pdo": "*"
+    "ext-pdo": "*",
+    "ext-http": "*",
+    "ext-fileinfo": "*"
   }
 }
