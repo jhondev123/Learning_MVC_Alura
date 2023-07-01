@@ -32,6 +32,10 @@ body {
     width: 100%;
     padding: 0 25px;
     z-index: 2;
+
+}
+body > header{
+    height: 80px;
 }
 
 .logo {
@@ -100,6 +104,10 @@ body {
     border-left: none;
     padding: 15px 15px;
     cursor: pointer;
+}
+.formulario__titulo.erro{
+    color: red;
+    margin-top: 1rem;
 }
 
 @media(min-width: 834px) {

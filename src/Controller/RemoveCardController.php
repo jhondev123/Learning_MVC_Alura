@@ -2,20 +2,30 @@
 
 namespace Jhonattan\MVC\Controller;
 
+use Jhonattan\MVC\Helper\FlashMessageTrait;
 use Jhonattan\MVC\Repository\VideoRepository;
+use Nyholm\Psr7\Response;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 
-class RemoveCardController implements Controller
+class RemoveCardController implements RequestHandlerInterface
 {
+    use FlashMessageTrait;
     public function __construct(private VideoRepository $videoRepository)
     {
     }
 
-    public function processaRequisicao(): void
+    public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+        $queryParamsGet = $request->getQueryParams();
+
+        $id = filter_var($queryParamsGet['id'], FILTER_VALIDATE_INT);
         if ($id === false || null) {
-            header('Location: /?sucesso=0');
-            return;
+            $this->addErrorMessage("Erro ao editar video");
+            return new Response(302, [
+                "location" => '/'
+            ]);
         }
         $success = $this->videoRepository->removeImage($id);
         if($success === false){

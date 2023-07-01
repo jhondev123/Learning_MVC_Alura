@@ -5,14 +5,17 @@ namespace Jhonattan\MVC\Controller;
 use ConnectionCreator;
 use Jhonattan\MVC\Entity\User;
 use Jhonattan\MVC\Repository\UserRepository;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 
-class NewUserController implements Controller
+class NewUserController implements RequestHandlerInterface
 {
     public function __construct()
     {
     }
 
-    public function processaRequisicao(): void
+    public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $pdo = ConnectionCreator::createConnection();
         $userRepository = new UserRepository($pdo);

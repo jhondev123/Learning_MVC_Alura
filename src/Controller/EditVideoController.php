@@ -3,54 +3,78 @@
 namespace Jhonattan\MVC\Controller;
 use finfo;
 use Jhonattan\MVC\Entity\Video;
+use Jhonattan\MVC\Helper\FlashMessageTrait;
 use Jhonattan\MVC\Repository\VideoRepository;
+use Nyholm\Psr7\Response;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\UploadedFileInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 
-class EditVideoController implements Controller
+class EditVideoController implements RequestHandlerInterface
 {
+    use FlashMessageTrait;
     public function __construct(private VideoRepository $videoRepository)
     {
 
     }
 
-public function processaRequisicao():void
+public function handle(ServerRequestInterface $request):ResponseInterface
         {
-            $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+            $queryParamsGet = $request->getQueryParams();
+            $queryParamsPost = $request->getParsedBody();
+
+            $id = filter_var($queryParamsGet['id'], FILTER_VALIDATE_INT);
             if ($id === false) {
-                header('Location: /?sucesso=0');
-                exit();
+                $this->addErrorMessage("Erro no ID");
+                return new Response(302, [
+                    "location" => '/'
+                ]);
             }
 
-            $url = filter_input(INPUT_POST, 'url', FILTER_VALIDATE_URL);
+            $url = filter_var($queryParamsPost['url'], FILTER_VALIDATE_URL);
             if ($url === false) {
-                header('Location: /?sucesso=0');
-                exit();
+                $this->addErrorMessage("Url não informada");
+                return new Response(302, [
+                    "location" => '/'
+                ]);
             }
             $titulo = filter_input(INPUT_POST, 'titulo');
             if ($titulo === false) {
-                header('Location: /?sucesso=0');
-                exit();
+                $this->addErrorMessage("Titulo não informado");
+                return new Response(302, [
+                    "location" => '/'
+                ]);
             }
 
             $video = new Video($url,$titulo);
             $video->setId($id);
+            $files = $request->getUploadedFiles();
+            /** @var UploadedFileInterface $uploadImage */
+            $uploadImage = $files['image'];
 
-            if($_FILES['image']['error'] === UPLOAD_ERR_OK){
+            if($uploadImage->getError() === UPLOAD_ERR_OK){
                 $finfo = new finfo(FILEINFO_MIME_TYPE);
-                $mineType = $finfo->file($_FILES['image']['tmp_name']);
-                if(str_starts_with($mineType,"image")){
-                    $safeFileName = uniqid('upload_') . "_". strtolower(pathinfo($_FILES['image']['name'],PATHINFO_BASENAME));
-                    move_uploaded_file(
-                        $_FILES['image']['tmp_name'],
-                        __DIR__ ."/../../public/img/uploads". $safeFileName
-                    );
-                    $video->setFilePath($safeFileName);
+                $tmpFile = $uploadImage->getStream()->getMetadata('uri');
+
+                $mineType = $finfo->file($tmpFile);
+
+                if(str_starts_with($mineType,"image/")){
+                    $safeFileName = uniqid('upload_') . "_". pathinfo($uploadImage->getClientFilename(),PATHINFO_BASENAME);
+                    $uploadImage->moveTo(__DIR__ . '/../../public/img/uploads/' . $safeFileName);
+                $video->setFilePath($safeFileName);
                 }
             }
             $sucess = $this->videoRepository->updateVideo($video);
             if($sucess === false){
-                header('Location: /?sucesso=0');
+                $this->addErrorMessage("Erro ao editar video");
+                return new Response(302, [
+                    "location" => '/'
+                ]);
             }else{
-                header('Location: /?sucesso=1');
+                return new Response(302, [
+                    "location" => '/'
+                ]);
             }
 
         }

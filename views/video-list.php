@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ .'/inicio-html.php';
+$this->layout('layout');
 /** @var \Jhonattan\MVC\Entity\Video[] $videoList */
 ?>
 
@@ -30,4 +30,3 @@ require_once __DIR__ .'/inicio-html.php';
     <?php endforeach; ?>
 </ul>
 
-<?php require_once __DIR__ . '/fim-html.php';
